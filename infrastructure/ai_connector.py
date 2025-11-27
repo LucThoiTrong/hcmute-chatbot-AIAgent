@@ -1,22 +1,33 @@
-import os
-from dotenv import load_dotenv
-from langchain_openai import AzureChatOpenAI
-
-load_dotenv()
-
-class AzureAIClient:
-    def __init__(self):
-        self.llm = AzureChatOpenAI(
-            azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
-            api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-            azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-            temperature=0.7,
-            timeout=60,
-        )
-
-    async def ask(self, message):
-        return await self.llm.ainvoke([message])
+from functools import lru_cache
+from langchain_openai import AzureChatOpenAI, AzureOpenAIEmbeddings
+from core.config import settings
 
 
-azure_ai_client = AzureAIClient()
+@lru_cache(maxsize=1)
+def get_llm() -> AzureChatOpenAI:
+    llm = AzureChatOpenAI(
+        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+        azure_deployment=settings.AZURE_OPENAI_DEPLOYMENT_NAME,
+        api_version=settings.AZURE_OPENAI_API_VERSION,
+        api_key=settings.AZURE_OPENAI_API_KEY,
+        temperature=0.7,
+        timeout=60,
+        streaming=True,
+    )
+
+    return llm
+
+
+@lru_cache(maxsize=1)
+def get_embeddings() -> AzureOpenAIEmbeddings:
+    """
+    Trả về model Embedding để chuyển text thành vector (dùng cho RAG).
+    """
+    embeddings = AzureOpenAIEmbeddings(
+        azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+        azure_deployment=settings.AZURE_EMBEDDING_DEPLOYMENT_NAME,
+        api_version=settings.AZURE_OPENAI_API_VERSION,
+        api_key=settings.AZURE_OPENAI_API_KEY,
+    )
+
+    return embeddings
