@@ -20,8 +20,13 @@ class DatabaseConnector:
 
         print(f"✅ Database Connected: MongoDB ({settings.MONGO_DB_NAME}) & Qdrant")
 
+
 # Singleton instance
 db = DatabaseConnector()
+
+
+def get_mongo_client():
+    return db.mongo_client
 
 
 def get_mongo_db():

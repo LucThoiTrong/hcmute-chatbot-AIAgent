@@ -1,4 +1,6 @@
 from typing import List, Annotated, Dict, Any
+
+from langgraph.checkpoint.mongodb import MongoDBSaver
 from typing_extensions import TypedDict
 
 from langchain_core.messages import BaseMessage
@@ -6,9 +8,9 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
-from langgraph.checkpoint.memory import MemorySaver
 from infrastructure.ai_connector import get_llm
 from .prompts import get_system_message
+from infrastructure.db_connector import get_mongo_client
 
 # Import Tools
 from tools.search_tool import lookup_knowledge_base
@@ -85,7 +87,8 @@ builder.add_edge("tools", "agent")
 
 # --- 5. TÍCH HỢP PERSISTENCE (BỘ NHỚ) ---
 # Checkpointer giúp lưu lại state dựa trên thread_id
-memory = MemorySaver()
+client = get_mongo_client()
+memory = MongoDBSaver(client=client)
 
 # Compile Graph
 graph = builder.compile(checkpointer=memory)
