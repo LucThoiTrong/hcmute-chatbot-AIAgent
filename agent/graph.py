@@ -2,9 +2,8 @@ from typing import List, Annotated, Dict, Any
 
 from langgraph.checkpoint.mongodb import MongoDBSaver
 from typing_extensions import TypedDict
-
+from langchain_core.messages import trim_messages
 from langchain_core.messages import BaseMessage
-from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -34,13 +33,31 @@ tool_node = ToolNode(tools)
 
 
 # --- 3. LOGIC NODE "AGENT" ---
-async def call_model(state: AgentState, config: RunnableConfig):
+async def call_model(state: AgentState):
     """
     Node chính xử lý logic của AI
     """
     # 1. Lấy thông tin từ State
     messages = state["messages"]
     user_info = state.get("user_info", {})
+
+    # ================= XỬ LÝ CONTEXT WINDOW =================
+    # strategy="last": Giữ lại những tin nhắn cuối cùng
+    # token_counter=len: Đếm số lượng tin nhắn (hoặc dùng hàm đếm token của model nếu muốn chuẩn xác hơn)
+    # max_tokens=10: Giữ lại khoảng 10-15 tin nhắn gần nhất (Tùy chỉnh số này)
+    # start_on="human": Đảm bảo tin nhắn bắt đầu sau khi cắt luôn là của người dùng (để hội thoại mạch lạc)
+    # include_system=False: Chúng ta sẽ tự inject System Message sau, nên không cần trim nó ở đây.
+    # allow_partial=False: Không được cắt dở dang cặp Tool/ToolOutput.
+
+    selected_messages = trim_messages(
+        messages,
+        max_tokens=20,  # Giữ lại khoảng 20 message gần nhất (cả hỏi lẫn đáp)
+        strategy="last",
+        token_counter=len,
+        include_system=False,
+        allow_partial=False,
+        start_on="human"
+    )
 
     # 2. Lấy thông tin sơ bộ về Database để nạp vào Context
     try:
@@ -60,7 +77,7 @@ async def call_model(state: AgentState, config: RunnableConfig):
     llm_with_tools = llm.bind_tools(tools)
 
     # 5. Gọi Model
-    response = await llm_with_tools.ainvoke([sys_msg] + messages)
+    response = await llm_with_tools.ainvoke([sys_msg] + selected_messages)
 
     # Trả về tin nhắn mới để cập nhật vào State
     return {"messages": [response]}
