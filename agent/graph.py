@@ -8,6 +8,8 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
+
+from core.config import settings
 from infrastructure.ai_connector import get_llm
 from .prompts import get_system_message
 from infrastructure.db_connector import get_mongo_client
@@ -88,7 +90,7 @@ builder.add_edge("tools", "agent")
 # --- 5. TÍCH HỢP PERSISTENCE (BỘ NHỚ) ---
 # Checkpointer giúp lưu lại state dựa trên thread_id
 client = get_mongo_client()
-memory = MongoDBSaver(client=client)
+memory = MongoDBSaver(client=client, db_name=settings.MONGO_DB_NAME)
 
 # Compile Graph
 graph = builder.compile(checkpointer=memory)
