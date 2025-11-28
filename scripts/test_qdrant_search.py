@@ -7,7 +7,7 @@ from tools.search_tool import search_dense, lookup_knowledge_base
 def run_test():
     # --- CẤU HÌNH CÂU HỎI TEST ---
     # Hãy thay đổi câu này bằng một nội dung có thật trong tài liệu bạn đã upload
-    query = "Quy định đầu ra"
+    query = "Điểm tiếng anh đầu ra"
 
     print(f"🚀 Đang bắt đầu kiểm tra hệ thống tìm kiếm...")
     print(f"🔎 Câu hỏi test: '{query}'")
@@ -18,7 +18,7 @@ def run_test():
     # ---------------------------------------------------------
     print("\n[TEST 1] Kết quả từ hàm 'search_dense' (Raw Data):")
     try:
-        raw_results = search_dense(query, k=3)
+        raw_results = search_dense(query, k=6)
 
         if not raw_results:
             print("❌ Không tìm thấy kết quả nào! (Check lại DB hoặc keyword)")

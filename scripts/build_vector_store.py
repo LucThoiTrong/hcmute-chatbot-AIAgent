@@ -3,7 +3,6 @@ import os
 import glob
 from pathlib import Path
 
-# Thêm đường dẫn root để import các module khác
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from langchain_community.document_loaders import Docx2txtLoader
@@ -32,8 +31,8 @@ def import_documents():
     print(f"🔎 Tìm thấy {len(docx_files)} files.")
 
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200,
+        chunk_size=200,
+        chunk_overlap=100,
         separators=["\n\n", "\n", ".", " ", ""]
     )
 
