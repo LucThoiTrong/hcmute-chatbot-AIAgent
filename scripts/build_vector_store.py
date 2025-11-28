@@ -1,18 +1,18 @@
 import sys
 import os
 import glob
-import uuid
 from pathlib import Path
 
+# Thêm đường dẫn root để import các module khác
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from langchain_community.document_loaders import Docx2txtLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from qdrant_client.models import PointStruct, VectorParams, Distance
+from qdrant_client.models import VectorParams, Distance
 
-# Import các module hạ tầng đã xây dựng
+# Import từ hạ tầng
 from core.config import settings
-from infrastructure.db_connector import get_qdrant_client
+from infrastructure.db_connector import get_qdrant_client, get_vector_store
 from infrastructure.ai_connector import get_embeddings
 
 # Cấu hình đường dẫn dữ liệu
@@ -22,7 +22,7 @@ DATA_FOLDER = r"E:\NCKH_TLCN_KLTN\Data"
 def import_documents():
     print(f"📂 Đang quét dữ liệu từ folder: {DATA_FOLDER}")
 
-    # 1. Tìm tất cả file .docx trong thư mục
+    # --- BƯỚC 1: LOAD VÀ SPLIT DATA ---
     docx_files = glob.glob(os.path.join(DATA_FOLDER, "*.docx"))
 
     if not docx_files:
@@ -31,8 +31,6 @@ def import_documents():
 
     print(f"🔎 Tìm thấy {len(docx_files)} files.")
 
-    # 2. Load và Split text
-    # Splitter giúp chia văn bản dài thành đoạn nhỏ (khoảng 1000 ký tự), chồng lấn 200 ký tự để giữ ngữ cảnh
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=200,
@@ -46,14 +44,12 @@ def import_documents():
         print(f"   -> Processing: {file_name}...")
 
         try:
-            # Python equivalent của DocxLoader
             loader = Docx2txtLoader(file_path)
             documents = loader.load()
 
-            # Cắt nhỏ văn bản
             chunks = text_splitter.split_documents(documents)
 
-            # Thêm metadata (tên file) để sau này biết nguồn trích dẫn
+            # Gán metadata để truy xuất nguồn gốc sau này
             for chunk in chunks:
                 chunk.metadata["source"] = file_name
                 all_chunks.append(chunk)
@@ -61,59 +57,45 @@ def import_documents():
         except Exception as e:
             print(f"⚠️ Lỗi khi đọc file {file_name}: {e}")
 
+    if not all_chunks:
+        print("⚠️ Không có dữ liệu nào để import.")
+        return
+
     print(f"📦 Tổng cộng đã tạo ra {len(all_chunks)} chunks dữ liệu.")
 
-    # 3. Kết nối & Embed
+    # --- BƯỚC 2: CHUẨN BỊ COLLECTION (Dùng Raw Client) ---
+    # Mục đích: Đảm bảo Collection tồn tại với đúng cấu hình trước khi LangChain đẩy data vào
     client = get_qdrant_client()
-    embeddings_model = get_embeddings()
     collection_name = settings.QDRANT_COLLECTION_NAME
 
-    # Kiểm tra kích thước vector
+    # Lấy kích thước vector mẫu từ model Azure
+    embeddings_model = get_embeddings()
     sample_embedding = embeddings_model.embed_query("test")
     vector_size = len(sample_embedding)
 
-    # Tạo collection nếu chưa có
     if not client.collection_exists(collection_name):
-        print(f"🆕 Tạo mới Collection '{collection_name}' (size={vector_size})...")
+        print(f"🆕 Tạo mới Collection '{collection_name}' (size={vector_size}, distance=Cosine)...")
         client.create_collection(
             collection_name=collection_name,
             vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
         )
+    else:
+        print(f"ℹ️ Collection '{collection_name}' đã tồn tại. Sẵn sàng ghi thêm dữ liệu.")
 
-    # 4. Upload lên Qdrant (Batching để chạy nhanh hơn)
-    print("🚀 Bắt đầu Embedding và Upload lên Qdrant...")
+    # --- BƯỚC 3: EMBED VÀ STORE (Dùng LangChain Vector Store) ---
+    print("🚀 Bắt đầu Embedding và Upload lên Qdrant thông qua LangChain...")
 
-    batch_size = 50  # Xử lý 50 đoạn một lúc
-    points = []
+    try:
+        vector_store = get_vector_store()
 
-    for i, chunk in enumerate(all_chunks):
-        # Embed nội dung
-        vector = embeddings_model.embed_query(chunk.page_content)
+        # Hàm này làm tất cả: Embed -> Tạo ID -> Batching -> Upsert
+        # Nó trả về list các ID đã lưu thành công
+        ids = vector_store.add_documents(documents=all_chunks)
 
-        # Tạo payload (dữ liệu lưu trữ)
-        payload = {
-            "content": chunk.page_content,
-            "source": chunk.metadata.get("source"),
-            "chunk_index": i
-        }
+        print(f"✅ Hoàn tất! Đã lưu thành công {len(ids)} vectors vào Qdrant.")
 
-        points.append(PointStruct(
-            id=str(uuid.uuid4()),
-            vector=vector,
-            payload=payload
-        ))
-
-        # Nếu đủ batch hoặc là phần tử cuối cùng thì upload
-        if len(points) >= batch_size or i == len(all_chunks) - 1:
-            client.upsert(
-                collection_name=collection_name,
-                points=points,
-                wait=True
-            )
-            print(f"   Đã upload {len(points)} chunks...")
-            points = []  # Reset batch
-
-    print("✅ Hoàn tất quá trình nhập dữ liệu!")
+    except Exception as e:
+        print(f"❌ Lỗi trong quá trình lưu vector: {e}")
 
 
 if __name__ == "__main__":
