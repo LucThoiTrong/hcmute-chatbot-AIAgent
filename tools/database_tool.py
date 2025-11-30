@@ -89,57 +89,65 @@ def get_collection_schema_tool(collection_name: str):
 def query_database_tool(collection_name: str, query_json: str, projection_json: str = None, sort_json: str = None):
     """
     Thực thi truy vấn MongoDB (find).
-    - collection_name: Tên bảng.
-    - query_json: JSON điều kiện lọc (VD: '{"age": {"$gt": 20}}').
-    - projection_json (Optional): JSON chọn trường cần lấy để tiết kiệm token (VD: '{"name": 1, "email": 1}').
-      Nếu muốn lấy hết thì bỏ qua hoặc để 'None'.
-    - sort_json (Optional): JSON sắp xếp (VD: '{"created_at": -1}' để lấy mới nhất).
     """
     try:
-        print(f"DEBUG - AI Querying Collection: {collection_name}")
-        print(f"DEBUG - Query JSON: {query_json}")
+        print(f"\n--- AI QUERY START: {collection_name} ---")
+        print(f"Query JSON: {query_json}")
 
         db = get_mongo_db()
 
-        # 1. Parse Query
+        # 1. Parse Input (Giữ nguyên logic cũ)
         try:
             query_dict = json.loads(query_json) if query_json else {}
         except:
             return "Lỗi: query_json không phải JSON hợp lệ."
 
-        # 2. Parse Projection (quan trọng để tiết kiệm token)
         projection_dict = None
         if projection_json and projection_json.lower() != "none":
             try:
                 projection_dict = json.loads(projection_json)
             except:
-                pass  # Nếu lỗi projection thì cứ lấy hết, không crash
+                pass
 
-        # 3. Parse Sort
-        sort_list = []
-        if sort_json and sort_json.lower() != "none":
+        # 2. Thực thi Query
+        cursor = db[collection_name].find(query_dict, projection_dict)
+
+        # Xử lý sort (Giữ nguyên logic cũ)
+        if sort_json:
             try:
+                sort_list = []
                 sort_dict = json.loads(sort_json)
                 for k, v in sort_dict.items():
-                    sort_list.append((k, int(v)))  # v là 1 hoặc -1
+                    sort_list.append((k, int(v)))
+                cursor = cursor.sort(sort_list)
             except:
                 pass
 
-        # Thực thi
-        cursor = db[collection_name].find(query_dict, projection_dict)
+        # 3. LẤY DỮ LIỆU & DEBUG (Đây là chỗ bạn cần chèn)
+        # Ép kiểu cursor thành list ngay lập tức để đếm
+        results = list(cursor.limit(20))
 
-        if sort_list:
-            cursor = cursor.sort(sort_list)
+        raw_string = str(results)  # Chuyển thành chuỗi để đếm ký tự
 
-        # Giới hạn 5 - 10 kết quả
-        results = list(cursor.limit(5))
+        # --- ĐOẠN DEBUG CỦA BẠN ---
+        print(f"DEBUG TOOL RESULT COUNT: {len(results)} items")  # Có bao nhiêu bản ghi?
+        print(f"DEBUG TOOL OUTPUT LENGTH: {len(raw_string)} chars")  # Chuỗi dài bao nhiêu?
+        # --------------------------
 
         if not results:
+            print("=> KẾT QUẢ: Rỗng (DB trả về list trống)")
             return "Không tìm thấy dữ liệu nào."
 
+        # Cảnh báo nếu chuỗi quá dài (thường > 6000 ký tự là Model bắt đầu ngáo hoặc bị cắt)
+        if len(raw_string) > 6000:
+            print("=> CẢNH BÁO: Output quá dài, AI có thể bị tràn Context Window!")
+
+        # 4. Trả về kết quả (Khuyên dùng hàm format_mongo_results tôi gửi ở câu trước)
+        # Nếu chưa dùng hàm format thì trả về raw JSON dump
         return json.dumps(results, default=str, ensure_ascii=False)
 
     except Exception as e:
+        print(f"Lỗi database: {e}")
         return f"Lỗi database: {e}"
 
 
