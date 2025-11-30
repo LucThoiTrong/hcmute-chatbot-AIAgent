@@ -20,10 +20,14 @@ def list_collections_tool():
         collections_info = []
         names = db.list_collection_names()
 
+        # Danh sách các từ khóa cần ẩn đi (Bảng hệ thống & LangGraph)
+        ignored_keywords = ["system.", "checkpoint", "writes", "blobs"]
+
         for name in names:
-            if name.startswith("system."):
+            # Nếu tên bảng chứa bất kỳ từ khóa nào bên trên -> Bỏ qua
+            if any(keyword in name for keyword in ignored_keywords):
                 continue
-            # Đếm số lượng doc để AI biết quy mô dữ liệu
+
             count = db[name].estimated_document_count()
             collections_info.append(f"{name} (count: {count})")
 
@@ -92,6 +96,9 @@ def query_database_tool(collection_name: str, query_json: str, projection_json: 
     - sort_json (Optional): JSON sắp xếp (VD: '{"created_at": -1}' để lấy mới nhất).
     """
     try:
+        print(f"DEBUG - AI Querying Collection: {collection_name}")
+        print(f"DEBUG - Query JSON: {query_json}")
+
         db = get_mongo_db()
 
         # 1. Parse Query
