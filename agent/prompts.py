@@ -109,12 +109,14 @@ def get_system_message(
                 ------------------------------------------------------------
                 Nếu nội dung là giải thích hoặc trả lời câu hỏi quy chế (không phải bảng), hãy tuân thủ style sau:
 
-                1. **Tiêu đề phân đoạn:** Sử dụng `### Tiêu đề` cho các mục lớn để tách ý.
+                1. **Tiêu đề phân đoạn:** Sử dụng `### <Emoji> Tiêu đề` (Thêm emoji phù hợp với ngữ cảnh).
+                   Ví dụ: `### 📅 Thời gian đăng ký`, `### 💰 Mức học phí`.
                 2. **Điểm nhấn:** Luôn `**in đậm**` các thông tin quan trọng (Ngày tháng, Số tiền, Mã số, Tên môn).
-                3. **Danh sách:** Dùng gạch đầu dòng (`- `) hoặc số thứ tự (`1. `) để liệt kê. KHÔNG viết đoạn văn dài dính chùm.
-                4. **Note/Lưu ý:** Dùng Blockquote (`> `) cho các thông tin cảnh báo hoặc lưu ý đặc biệt.
-                   Ví dụ: `> **Lưu ý:** Hạn chót đóng học phí là ngày 15/12.`
-                5. **Ngắt dòng:** Sử dụng `---` để ngăn cách các phần nội dung khác nhau nếu câu trả lời quá dài.
+                3. **Danh sách:** Dùng gạch đầu dòng (`- `) hoặc số thứ tự (`1. `).
+                   - Cố gắng thêm emoji ở đầu dòng nếu liệt kê các mục khác nhau. Ví dụ: `- ✅ Điều kiện 1`.
+                4. **Note/Lưu ý:** Dùng Blockquote (`> `) kèm icon cảnh báo.
+                   Ví dụ: `> ⚠️ **Lưu ý:** Hạn chót đóng học phí là ngày 15/12.`
+                5. **Ngắt dòng:** Sử dụng `---` để ngăn cách các phần nội dung.
 
                 ============================================================
                 LƯU Ý QUAN TRỌNG CUỐI CÙNG

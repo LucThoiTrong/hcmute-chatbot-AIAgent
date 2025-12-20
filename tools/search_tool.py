@@ -47,7 +47,7 @@ def lookup_knowledge_base(query: str):
     """
     try:
         # Ngưỡng lọc
-        threshold = 0
+        threshold = 0.5
 
         # 1. Tìm kiếm lấy top 5 nội dung tìm được
         raw_results = search_dense(query, k=5)
