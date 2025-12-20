@@ -93,17 +93,41 @@ def get_system_message(
 
                 TRƯỜNG HỢP 1: DỮ LIỆU CÓ CẤU TRÚC (Bảng điểm, TKB, Danh sách)
                 ------------------------------------------------------------
-                - Bất kể kết quả ít hay nhiều, nếu dữ liệu có nhiều thuộc tính (cột), BẮT BUỘC dùng Markdown Table.
-                - **Cấu trúc:**
-                  [Câu dẫn ngắn gọn]
-                  (Xuống dòng x2)
-                  | Header 1 | Header 2 | Header 3 |
-                  | :--- | :--- | :--- |
-                  | Value 1 | Value 2 | Value 3 |
+                1. **Tiêu đề Phản hồi (BẮT BUỘC):** - Sử dụng cú pháp `### <Emoji> <TIÊU ĐỀ IN HOA>` để làm nổi bật.
+                   - Ví dụ: `### 📊 BẢNG ĐIỂM CHI TIẾT`.
 
-                - **Nội dung mẫu:**
-                  - Điểm: | Môn học | Mã Lớp | GK | CK | Tổng kết |
-                  - TKB: | Thứ | Tiết | Phòng | Môn học | GV |
+                2. **Quy tắc Bảng (Table):**
+                   - Nếu là Bảng Điểm, BẮT BUỘC thêm cột "Trạng thái" ở cuối.
+                   - **Logic đánh giá:**
+                     + Nếu `Tổng kết` >= 5.0: Ghi "**Đậu ✅**"
+                     + Nếu `Tổng kết` < 5.0: Ghi "**Rớt ❌**"
+                     + Nếu chưa có điểm (null/empty): Ghi "-" và để trống cột Trạng thái.
+
+                3. **Logic Thông báo Bổ sung (QUAN TRỌNG):**
+                   - Sau khi tạo bảng xong, hãy kiểm tra lại toàn bộ cột "Tổng kết".
+                   - Nếu có **BẤT KỲ** môn học nào có điểm là `-` (chưa có điểm), bạn BẮT BUỘC phải thêm một Blockquote (`> `) ở cuối câu trả lời.
+                   - Trong thông báo, hãy liệt kê cụ thể tên các môn chưa có điểm đó.
+                   - **Mẫu câu:** > ⚠️ **Lưu ý:** Hiện tại môn **[Tên các môn chưa có điểm]** chưa có điểm tổng kết trên hệ thống. Bạn vui lòng theo dõi cập nhật sau nhé.
+
+                - **Cấu trúc mẫu (BẮT BUỘC XUỐNG DÒNG):**
+                  ### <Emoji> <TIÊU ĐỀ>
+                  
+                  | Header 1 | Header 2 | ... |
+                  | :--- | :--- | :--- |
+                  | Value 1 | Value 2 | ... |
+
+                  (Nếu có môn thiếu điểm thì chèn Note vào đây)
+
+                - **Nội dung mẫu áp dụng:**
+                  - Điểm: 
+                    ### 📊 BẢNG ĐIỂM CHI TIẾT
+                    
+                    | Môn học | Mã Lớp | GK | CK | Tổng kết | Trạng thái |
+                    | :--- | :--- | :--- | :--- | :--- | :--- |
+                    | Lập trình Web | CL_WEB | 8 | 9 | 8.5 | **Đậu ✅** |
+                    | Tiếng Anh 1 | CL_ENG1 | - | - | - | - |
+                    
+                    > ⚠️ **Lưu ý:** Hiện tại môn **Tiếng Anh 1** chưa có điểm tổng kết trên hệ thống. Bạn vui lòng theo dõi cập nhật sau nhé.
 
                 TRƯỜNG HỢP 2: VĂN BẢN, QUY CHẾ, HƯỚNG DẪN (Text Response)
                 ------------------------------------------------------------
