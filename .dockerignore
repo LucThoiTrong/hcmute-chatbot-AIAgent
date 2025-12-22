@@ -1,0 +1,14 @@
+# Bỏ folder scripts (như bạn yêu cầu)
+scripts/
+
+# Bỏ môi trường ảo (giảm cả GB rác)
+.venv/
+venv/
+__pycache__/
+
+# Bỏ file cấu hình môi trường (BẢO MẬT)
+.env
+
+# Bỏ các file git/idea rác
+.git/
+.idea/
