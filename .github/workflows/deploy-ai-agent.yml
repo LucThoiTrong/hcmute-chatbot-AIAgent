@@ -18,11 +18,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Cài Python 3.10 (Khớp với Dockerfile của bạn)
-      - name: Set up Python 3.10
+      # Cài Python 3.11 (Khớp với Dockerfile của bạn)
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
           cache: 'pip' # Tự động cache lại các thư viện pip để lần sau chạy nhanh hơn
 
       # Thử cài đặt thư viện xem có lỗi xung đột gì không
