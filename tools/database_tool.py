@@ -64,7 +64,6 @@ def get_collection_schema_tool(collection_name: str):
                 # Nếu trường này chưa có trong map, thêm vào
                 if key not in schema_map:
                     schema_map[key] = type(value).__name__
-                # (Nâng cao) Có thể check nếu 1 trường có nhiều kiểu dữ liệu khác nhau
             count += 1
 
         if count == 0:
@@ -129,11 +128,6 @@ def query_database_tool(collection_name: str, query_json: str, projection_json: 
 
         raw_string = str(results)  # Chuyển thành chuỗi để đếm ký tự
 
-        # --- ĐOẠN DEBUG CỦA BẠN ---
-        print(f"DEBUG TOOL RESULT COUNT: {len(results)} items")  # Có bao nhiêu bản ghi?
-        print(f"DEBUG TOOL OUTPUT LENGTH: {len(raw_string)} chars")  # Chuỗi dài bao nhiêu?
-        # --------------------------
-
         if not results:
             print("=> KẾT QUẢ: Rỗng (DB trả về list trống)")
             return "Không tìm thấy dữ liệu nào."
@@ -142,8 +136,7 @@ def query_database_tool(collection_name: str, query_json: str, projection_json: 
         if len(raw_string) > 6000:
             print("=> CẢNH BÁO: Output quá dài, AI có thể bị tràn Context Window!")
 
-        # 4. Trả về kết quả (Khuyên dùng hàm format_mongo_results tôi gửi ở câu trước)
-        # Nếu chưa dùng hàm format thì trả về raw JSON dump
+        # 4. Trả về kết quả
         return json.dumps(results, default=str, ensure_ascii=False)
 
     except Exception as e:

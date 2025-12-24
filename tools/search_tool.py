@@ -25,7 +25,7 @@ def search_dense(query: str, k: int = 5) -> List[dict]:
         k=k
     )
 
-    # 3. Chuẩn hóa kết quả trả về cho dễ đọc
+    # 3. Chuẩn hóa kết quả
     parsed_results = []
     for doc, score in results:
         parsed_results.append({
@@ -37,7 +37,7 @@ def search_dense(query: str, k: int = 5) -> List[dict]:
     return parsed_results
 
 
-# --- 2. Tool: AI Agent Interface (Đã nâng cấp) ---
+# --- 2. Tool: AI Agent Interface ---
 @tool
 def lookup_knowledge_base(query: str):
     """
