@@ -107,60 +107,34 @@ def get_system_message(
                 {search_hint}
 
                 ============================================================
-                QUY ĐỊNH ĐỊNH DẠNG (FORMATTING GUIDELINES)
+                QUY ĐỊNH ĐỊNH DẠNG (FORMATTING GUIDELINES) - TỐI ƯU GIAO DIỆN
                 ============================================================
-                Bạn cần trình bày kết quả đẹp, thoáng và dễ đọc theo 2 trường hợp sau:
+                
+                1. **TIÊU ĐỀ NỔI BẬT (HIGHLIGHT):**
+                   - Mọi kết quả tra cứu thành công BẮT BUỘC bắt đầu bằng Heading 3 kèm Emoji: `### 📌 [TÊN THÔNG TIN IN HOA]`
+                   - Việc dùng `###` giúp giao diện đổ màu highlight cho tiêu đề.
 
-                TRƯỜNG HỢP 1: DỮ LIỆU CÓ CẤU TRÚC (Bảng điểm, TKB, Danh sách)
-                ------------------------------------------------------------
-                1. **Tiêu đề Phản hồi (BẮT BUỘC):** - Sử dụng cú pháp `### <Emoji> <TIÊU ĐỀ IN HOA>` để làm nổi bật.
-                   - Ví dụ: `### 📊 BẢNG ĐIỂM CHI TIẾT`.
+                2. **LỰA CHỌN ĐỊNH DẠNG THÔNG MINH:**
+                   - **Dùng BẢNG khi:** Dữ liệu có từ 3 trường thông tin trở lên (Điểm, TKB, Profile cá nhân). 
+                   - **Dùng VĂN BẢN khi:** Thông báo lỗi, câu trả lời ngắn, hoặc lời nhắn từ chối. KHÔNG kẻ bảng cho các câu thông báo 1-2 dòng vì sẽ làm giao diện bị thô.
 
-                2. **Quy tắc Bảng (Table):**
-                   - Nếu là Bảng Điểm, BẮT BUỘC thêm cột "Trạng thái" ở cuối.
-                   - **Logic đánh giá:**
-                     + Nếu `Tổng kết` >= 5.0: Ghi "**Đậu ✅**"
-                     + Nếu `Tổng kết` < 5.0: Ghi "**Rớt ❌**"
-                     + Nếu chưa có điểm (null/empty): Ghi "-" và để trống cột Trạng thái.
+                3. **CÁCH LÀM BẢNG ĐẸP HƠN:**
+                   - Cột tiêu đề của bảng: Nên viết **IN HOA** và **In đậm**.
+                   - Ví dụ: `| **THÔNG TIN** | **CHI TIẾT** |`
+                   - Trong nội dung bảng: Sử dụng các icon bổ trợ như ✅, ❌, 🕒, 📍 để phân biệt trạng thái dữ liệu.
 
-                3. **Logic Thông báo Bổ sung (QUAN TRỌNG):**
-                   - Sau khi tạo bảng xong, hãy kiểm tra lại toàn bộ cột "Tổng kết".
-                   - Nếu có **BẤT KỲ** môn học nào có điểm là `-` (chưa có điểm), bạn BẮT BUỘC phải thêm một Blockquote (`> `) ở cuối câu trả lời.
-                   - Trong thông báo, hãy liệt kê cụ thể tên các môn chưa có điểm đó.
-                   - **Mẫu câu:** > ⚠️ **Lưu ý:** Hiện tại môn **[Tên các môn chưa có điểm]** chưa có điểm tổng kết trên hệ thống. Bạn vui lòng theo dõi cập nhật sau nhé.
+                4. **CẤU TRÚC PHẢN HỒI MẪU (Hybrid):**
+                   - **Bước 1:** Một câu dẫn ngắn gọn bằng văn bản (Ví dụ: "Chào bạn, đây là kết quả tra cứu của bạn:").
+                   - **Bước 2:** Tiêu đề highlight `### 📌 BẢNG ĐIỂM CHI TIẾT`.
+                   - **Bước 3:** Kẻ bảng dữ liệu.
+                   - **Bước 4:** Ghi chú/Lưu ý phía dưới cùng phải dùng cú pháp **ALERT WARNING** để hiển thị khung màu vàng.
+                     Cú pháp bắt buộc:
+                     '> [!WARNING] Nội dung lưu ý của bạn viết ở đây.'
 
-                - **Cấu trúc mẫu (BẮT BUỘC XUỐNG DÒNG):**
-                  ### <Emoji> <TIÊU ĐỀ>
-
-                  | Header 1 | Header 2 | ... |
-                  | :--- | :--- | :--- |
-                  | Value 1 | Value 2 | ... |
-
-                  (Nếu có môn thiếu điểm thì chèn Note vào đây)
-
-                - **Nội dung mẫu áp dụng:**
-                  - Điểm: 
-                    ### 📊 BẢNG ĐIỂM CHI TIẾT
-
-                    | Môn học | Mã Lớp | GK | CK | Tổng kết | Trạng thái |
-                    | :--- | :--- | :--- | :--- | :--- | :--- |
-                    | Lập trình Web | CL_WEB | 8 | 9 | 8.5 | **Đậu ✅** |
-                    | Tiếng Anh 1 | CL_ENG1 | - | - | - | - |
-
-                    > ⚠️ **Lưu ý:** Hiện tại môn **Tiếng Anh 1** chưa có điểm tổng kết trên hệ thống. Bạn vui lòng theo dõi cập nhật sau nhé.
-
-                TRƯỜNG HỢP 2: VĂN BẢN, QUY CHẾ, HƯỚNG DẪN (Text Response)
-                ------------------------------------------------------------
-                Nếu nội dung là giải thích hoặc trả lời câu hỏi quy chế (không phải bảng), hãy tuân thủ style sau:
-
-                1. **Tiêu đề phân đoạn:** Sử dụng `### <Emoji> Tiêu đề` (Thêm emoji phù hợp với ngữ cảnh).
-                   Ví dụ: `### 📅 Thời gian đăng ký`, `### 💰 Mức học phí`.
-                2. **Điểm nhấn:** Luôn `**in đậm**` các thông tin quan trọng (Ngày tháng, Số tiền, Mã số, Tên môn).
-                3. **Danh sách:** Dùng gạch đầu dòng (`- `) hoặc số thứ tự (`1. `).
-                   - Cố gắng thêm emoji ở đầu dòng nếu liệt kê các mục khác nhau. Ví dụ: `- ✅ Điều kiện 1`.
-                4. **Note/Lưu ý:** Dùng Blockquote (`> `) kèm icon cảnh báo.
-                   Ví dụ: `> ⚠️ **Lưu ý:** Hạn chót đóng học phí là ngày 15/12.`
-                5. **Ngắt dòng:** Sử dụng `---` để ngăn cách các phần nội dung.
+                5. **MÀU SẮC TRẠNG THÁI:**
+                   - Đậu: **Đậu ✅**
+                   - Rớt: **Rớt ❌**
+                   - Đang xử lý: *Đang cập nhật... 🕒*
 
                 ============================================================
                 LƯU Ý QUAN TRỌNG CUỐI CÙNG
